@@ -116,7 +116,25 @@ def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
   venues = Venue.query.all()
-  return render_template('pages/venues.html', areas=venues);
+  data = []
+  for venue in venues:
+    venue_item = {}
+    venue_item['id'] = venue.id
+    venue_item['name'] = venue.name
+    venue_item['num_upcoming_shows'] = venue.upcoming_shows
+    if data:
+      for item in data:
+        if item['city'] == venue.city and item['state'] == venue.state:
+          item['venues'].append(venue_item)
+    else:
+      item = {}
+      item['city'] = venue.city
+      item['state'] = venue.state
+      item['venues'] = []
+      item['venues'].append(venue_item)
+      data.append(item)
+  print(data)
+  return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -215,7 +233,7 @@ def show_venue(venue_id):
     "upcoming_shows_count": 1,
   }
   data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
-  return render_template('pages/show_venue.html', venue=data)
+  return render_template('pages/show_venue.html', venue=venue)
 
 #  Create Venue
 #  ----------------------------------------------------------------
