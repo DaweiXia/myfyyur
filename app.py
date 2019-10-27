@@ -64,6 +64,13 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    webstie = db.Column(db.String(120))
+    seeking_venue = db.Column(db.Boolean)
+    seeking_description = db.Column(db.String(500))
+    past_shows = db.Column(db.ARRAY(db.JSON), default=[])
+    upcoming_shows = db.Column(db.ARRAY(db.JSON), default=[])
+    past_shows_count = db.Column(db.Integer, default=0)
+    upcomint_shows_count = db.Column(db.Integer, default=0)
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
