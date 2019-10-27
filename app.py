@@ -49,7 +49,7 @@ class Venue(db.Model):
     past_shows = db.Column(db.ARRAY(db.JSON), default=[])
     upcoming_shows = db.Column(db.ARRAY(db.JSON), default=[])
     past_shows_count = db.Column(db.Integer, default=0)
-    upcomint_shows_count = db.Column(db.Integer, default=0)
+    upcoming_shows_count = db.Column(db.Integer, default=0)
 
     shows = db.relationship('Show', backref='venue', lazy=True)
 
@@ -72,7 +72,7 @@ class Artist(db.Model):
     past_shows = db.Column(db.ARRAY(db.JSON), default=[])
     upcoming_shows = db.Column(db.ARRAY(db.JSON), default=[])
     past_shows_count = db.Column(db.Integer, default=0)
-    upcomint_shows_count = db.Column(db.Integer, default=0)
+    upcoming_shows_count = db.Column(db.Integer, default=0)
 
     shows = db.relationship('Show', backref='artist', lazy=True)
 
