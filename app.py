@@ -74,6 +74,8 @@ class Artist(db.Model):
     past_shows_count = db.Column(db.Integer, default=0)
     upcomint_shows_count = db.Column(db.Integer, default=0)
 
+    shows = db.relationship('Show', backref='artist', lazy=True)
+
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 class Show(db.Model):
   __tablename__ = "Show"
