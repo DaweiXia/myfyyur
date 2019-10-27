@@ -382,6 +382,24 @@ def create_show_submission():
   try:
     show = Show(artist_id=artist_id, venue_id=venue_id, start_time=start_time)
     db.session.add(show)
+
+    upcoming_show_item = {}
+    upcoming_show_item['artist_id'] = show.artist_id
+    artist = Artist.query.get(show.artist_id)
+    upcoming_show_item['artist_name'] = artist['name']
+    upcoming_show_item['artist_image_link'] = artist['image_link']
+    upcoming_show_item['start_time'] = show.start_time
+    artist_upcoming_show_count = artist.upcoming_shows_count
+    venue_upcoming_show_count = Venue.query.get(show.venue_id)['upcoming_shows_count']
+    venue_upcoming_shows = Venue.query.get(show.venue_id)['upcoming_shows']
+    artist_upcoming_shows = Artist.query.get(show.artist_id)['upcoming_shows']
+    venue_upcoming_shows.append(upcoming_show_item)
+    artist_upcoming_shows.append(upcoming_show_item)
+
+    db.session.query(Venue).filter(Venue.id==show.venue_id).update({'upcoming_shows': venue_upcoming_shows,
+    'upcoming_shows_count': venue_upcoming_show_count+1})
+    db.session.query(Artist).filter(Artist.id==show.artist_id).update({'upcoming_shows': artist_upcoming_shows,
+    'upcoming_show_count': artist_upcoming_show_count+1})
     db.session.commit()
     flash('Show was successfully listed!')
   except:
