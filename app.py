@@ -121,7 +121,7 @@ def venues():
     venue_item = {}
     venue_item['id'] = venue.id
     venue_item['name'] = venue.name
-    venue_item['num_upcoming_shows'] = venue.upcoming_shows
+    venue_item['num_upcoming_shows'] = venue.upcoming_shows_count
     if data:
       for item in data:
         if item['city'] == venue.city and item['state'] == venue.state:
