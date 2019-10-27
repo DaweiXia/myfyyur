@@ -51,6 +51,8 @@ class Venue(db.Model):
     past_shows_count = db.Column(db.Integer, default=0)
     upcomint_shows_count = db.Column(db.Integer, default=0)
 
+    shows = db.relationship('Show', backref='venue', lazy=True)
+
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
@@ -73,6 +75,13 @@ class Artist(db.Model):
     upcomint_shows_count = db.Column(db.Integer, default=0)
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+class Show(db.Model):
+  __tablename__ = "Show"
+
+  id = db.Column(db.Integer, primary_key=True)
+  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'))
+  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'))
+  start_time = db.Column(db.DateTime)
 
 #----------------------------------------------------------------------------#
 # Filters.
