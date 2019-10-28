@@ -178,6 +178,7 @@ def create_venue_submission():
     db.session.commit()
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
   except:
+    db.session.rollback()
     flash('An error occurred. Venue ' + name + ' could not be listed.')
   finally:
     db.session.close()
@@ -304,6 +305,7 @@ def create_artist_submission():
     db.session.commit()
     flash('Artist ' + name + ' was successfully listed!')
   except:
+    db.session.rollback()
     flash('An error occurred. Artist ' + name + ' could not be listed.')
   finally:
     db.session.close()
