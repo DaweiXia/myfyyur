@@ -5,6 +5,7 @@
 import json
 import dateutil.parser
 import babel
+import time
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
@@ -46,10 +47,6 @@ class Venue(db.Model):
     webstie = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500))
-    past_shows = db.Column(db.ARRAY(db.JSON), default=[])
-    upcoming_shows = db.Column(db.ARRAY(db.JSON), default=[])
-    past_shows_count = db.Column(db.Integer, default=0)
-    upcoming_shows_count = db.Column(db.Integer, default=0)
 
     shows = db.relationship('Show', backref='venue', lazy=True)
 
@@ -69,10 +66,6 @@ class Artist(db.Model):
     webstie = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500))
-    past_shows = db.Column(db.ARRAY(db.JSON), default=[])
-    upcoming_shows = db.Column(db.ARRAY(db.JSON), default=[])
-    past_shows_count = db.Column(db.Integer, default=0)
-    upcoming_shows_count = db.Column(db.Integer, default=0)
 
     shows = db.relationship('Show', backref='artist', lazy=True)
 
@@ -83,19 +76,19 @@ class Show(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'))
   artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'))
-  start_time = db.Column(db.DateTime)
+  start_time = db.Column(db.String(120))
 
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
 
 def format_datetime(value, format='medium'):
-  date = dateutil.parser.parse(value)
+  date = dateutil.parser.parse(str(value))
   if format == 'full':
       format="EEEE MMMM, d, y 'at' h:mma"
   elif format == 'medium':
       format="EE MM, dd, y h:mma"
-  return babel.dates.format_datetime(date, format)
+  return babel.dates.format_datetime(date, format, locale='en_US')
 
 app.jinja_env.filters['datetime'] = format_datetime
 
@@ -121,7 +114,8 @@ def venues():
     venue_item = {}
     venue_item['id'] = venue.id
     venue_item['name'] = venue.name
-    venue_item['num_upcoming_shows'] = venue.upcoming_shows_count
+    venue_item['num_upcoming_shows'] = db.session.query(Show).filter(Show.venue_id==venue.id,
+    Show.start_time>time.strftime('%Y-%m-%d %H:%M:%S')).count()
     if data:
       for item in data:
         if item['city'] == venue.city and item['state'] == venue.state:
@@ -327,42 +321,17 @@ def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "venue_id": 1,
-    "venue_name": "The Musical Hop",
-    "artist_id": 4,
-    "artist_name": "Guns N Petals",
-    "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-    "start_time": "2019-05-21T21:30:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 5,
-    "artist_name": "Matt Quevedo",
-    "artist_image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-    "start_time": "2019-06-15T23:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-01T20:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-08T20:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-15T20:00:00.000Z"
-  }]
+  data = []
+  shows = Show.query.all()
+  for show in shows:
+    item = {}
+    item['venue_id'] = show.venue_id
+    item['venue_name'] = Venue.query.get(show.venue_id).name
+    item['artist_id'] = show.artist_id
+    item['artist_name'] = Artist.query.get(show.artist_id).name
+    item['artist_image_link'] = Artist.query.get(show.artist_id).image_link
+    item['start_time'] = dateutil.parser.parse(str(show.start_time))
+    data.append(item)
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
@@ -382,27 +351,10 @@ def create_show_submission():
   try:
     show = Show(artist_id=artist_id, venue_id=venue_id, start_time=start_time)
     db.session.add(show)
-
-    upcoming_show_item = {}
-    upcoming_show_item['artist_id'] = show.artist_id
-    artist = Artist.query.get(show.artist_id)
-    upcoming_show_item['artist_name'] = artist['name']
-    upcoming_show_item['artist_image_link'] = artist['image_link']
-    upcoming_show_item['start_time'] = show.start_time
-    artist_upcoming_show_count = artist.upcoming_shows_count
-    venue_upcoming_show_count = Venue.query.get(show.venue_id)['upcoming_shows_count']
-    venue_upcoming_shows = Venue.query.get(show.venue_id)['upcoming_shows']
-    artist_upcoming_shows = Artist.query.get(show.artist_id)['upcoming_shows']
-    venue_upcoming_shows.append(upcoming_show_item)
-    artist_upcoming_shows.append(upcoming_show_item)
-
-    db.session.query(Venue).filter(Venue.id==show.venue_id).update({'upcoming_shows': venue_upcoming_shows,
-    'upcoming_shows_count': venue_upcoming_show_count+1})
-    db.session.query(Artist).filter(Artist.id==show.artist_id).update({'upcoming_shows': artist_upcoming_shows,
-    'upcoming_show_count': artist_upcoming_show_count+1})
     db.session.commit()
     flash('Show was successfully listed!')
-  except:
+  except Exception as e:
+    db.session.rollback()
     flash('An error occurred. Show could not be listed.')
   finally:
     db.session.close()
