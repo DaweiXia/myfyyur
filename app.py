@@ -44,7 +44,7 @@ class Venue(db.Model):
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     genres = db.Column(db.ARRAY(db.String(120)))
-    webstie = db.Column(db.String(120))
+    website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500))
 
@@ -176,16 +176,22 @@ def create_venue_submission():
   state = request.form.get('state')
   address = request.form.get('address')
   phone = request.form.get('phone')
-  genres = request.form.get('genres')
+  genres = request.form.getlist('genres')
   facebook_link = request.form.get('facebook_link')
+  image_link = request.form.get('image_link')
+  website = request.form.get('website')
+  seeking_talent = True if request.form.get('seeking_talent') else False
+  seeking_description = request.form.get('seeking_description')
   
   try:
     venue = Venue(name=name, city=city, state=state, address=address,
-    phone=phone, genres=genres, facebook_link=facebook_link)
+    phone=phone, genres=genres, facebook_link=facebook_link,
+    image_link=image_link, website=website, seeking_talent=seeking_talent,
+    seeking_description=seeking_description)
     db.session.add(venue)
     db.session.commit()
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  except:
+  except Exception as e:
     db.session.rollback()
     flash('An error occurred. Venue ' + name + ' could not be listed.')
   finally:
