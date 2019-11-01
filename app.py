@@ -317,14 +317,19 @@ def create_artist_submission():
   phone = request.form.get('phone')
   genres = request.form.get('genres')
   facebook_link = request.form.get('facebook_link')
+  image_link = request.form.get('image_link')
+  website = request.form.get('website')
+  seeking_venue = True if request.form.get('seeking_venue') else False
+  seeking_description = request.form.get('seeking_description')
 
   try:
     artist = Artist(name=name, city=city, state=state, phone=phone,
-    genres=genres, facebook_link=facebook_link)
+    genres=genres, facebook_link=facebook_link, image_link=image_link,
+    website=website, seeking_venue=seeking_venue, seeking_description=seeking_description)
     db.session.add(artist)
     db.session.commit()
     flash('Artist ' + name + ' was successfully listed!')
-  except:
+  except Exception as e:
     db.session.rollback()
     flash('An error occurred. Artist ' + name + ' could not be listed.')
   finally:
