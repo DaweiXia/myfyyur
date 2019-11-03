@@ -127,7 +127,7 @@ def venues():
       item['venues'] = []
       item['venues'].append(venue_item)
       data.append(item)
-  return render_template('pages/venues.html', areas=data);
+  return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -156,7 +156,48 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-  data = Venue.query.get(venue_id)
+  venue = Venue.query.get(venue_id)
+  data = {}
+  data['id'] = venue.id
+  data['name'] = venue.genres
+  data['address'] = venue.address
+  data['city'] = venue.city
+  data['state'] = venue.state
+  data['phone'] = venue.phone
+  data['website'] = venue.website
+  data['facebook_link'] = venue.facebook_link
+  data['seeking_talent'] = venue.seeking_talent
+  data['seeking_description'] = venue.seeking_description
+  data['image_link'] = venue.image_link
+
+
+  data['past_shows'] = []
+  past_shows = Show.query.filter(Show.venue_id == venue.id, Show.start_time < time.strftime('%Y-%m-%d %H:%M:%S')).all()
+  
+  for show in past_shows:
+    item = {}
+    item['artist_id'] = show.artist_id
+    artist = Artist.query.get(show.artist_id)
+    item['artist_name'] = artist.name
+    item['artist_image_link'] = artist.image_link
+    item['start_time'] = show.start_time
+    data['past_shows'].append(item)
+
+  data['upcoming_shows'] = []
+  upcoming_shows = Show.query.filter(Show.venue_id == venue.id, Show.start_time > time.strftime('%Y-%m-%d %H:%M:%S')).all()
+  for show in upcoming_shows:
+    item = {}
+    item['artist_id'] = show.artist_id
+    artist = Artist.query.get(show.artist_id)
+    item['artist_name'] = artist.name
+    item['artist_image_link'] = artist.image_link
+    item['start_time'] = show.start_time
+    data['upcoming_shows'].append(item)  
+
+  data['past_shows_count'] = len(data['past_shows'])
+  data['upcomint_shows_count'] = len(data['upcoming_shows'])
+
+
   return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
@@ -241,7 +282,42 @@ def search_artists():
 def show_artist(artist_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-  data = Artist.query.get(artist_id)
+  artist = Artist.query.get(artist_id)
+  data = {}
+  data['id'] = artist.id
+  data['name'] = artist.name
+  data['generes'] = artist.genres
+  data['city'] = artist.city
+  data['state'] = artist.state
+  data['phone'] = artist.phone
+  data['website'] = artist.website
+  data['facebook_link'] = artist.facebook_link
+  data['seeking_venue'] = artist.seeking_venue
+  data['seeking_description'] = artist.seeking_description
+  data['image_link'] = artist.image_link
+  data['past_shows'] = []
+  past_shows = Show.query.filter(Show.artist_id == artist.id, Show.start_time < time.strftime('%Y-%m-%d %H:%M:%S')).all()
+  for show in past_shows:
+    item = {}
+    item['venue_id'] = show.venue_id
+    venue = Venue.query.get(show.venue_id)
+    item['venue_name'] = venue.name
+    item['venue_image_link'] = venue.image_link
+    item['start_time'] = show.start_time
+    data['past_shows'].append(item)
+
+  data['upcoming_shows'] = []
+  upcoming_shows = Show.query.filter(Show.artist_id == artist.id, Show.start_time > time.strftime('%Y-%m-%d %H:%M:%S')).all()
+  for show in upcoming_shows:
+    item = {}
+    item['venue_id'] = show.venue_id
+    venue = Venue.query.get(show.venue_id)
+    item['venue_name'] = venue.name
+    item['venue_image_link'] = venue.image_link
+    item['start_time'] = show.start_time
+    data['upcoming_shows'].append(item)
+  data['past_shows_count'] = len(data['past_shows'])
+  data['upcoming_shows_count'] = len(data['upcoming_shows'])
   return render_template('pages/show_artist.html', artist=data)
 
 #  Update
