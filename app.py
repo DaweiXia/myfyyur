@@ -147,7 +147,7 @@ def search_venues():
     data.append(item)
 
   response = {
-    "count": len(results),
+    "count": len(venues),
     "data": data
   }
   return render_template('pages/search_venues.html', results=response, search_term=search_term)
